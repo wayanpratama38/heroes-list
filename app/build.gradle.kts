@@ -56,6 +56,9 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    // Memuat Data dengan Kotlin Coroutine
+    // Load Data With Kotlin Coroutine in Compose
     implementation(libs.coil.compose)
+
+    // ViewModel in Compose
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
 }
