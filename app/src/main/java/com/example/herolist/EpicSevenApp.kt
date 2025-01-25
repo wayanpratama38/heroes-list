@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -21,8 +22,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -30,14 +34,19 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.example.herolist.data.HeroRepository
 import com.example.herolist.models.HeroesData
 import com.example.herolist.ui.theme.HeroListTheme
 import kotlinx.coroutines.launch
@@ -76,11 +85,14 @@ fun HeroesListItem(
 
 
 // Main App
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun EpicSevenApp(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: EpicSevenViewModel = viewModel(factory = ViewModelFactory(HeroRepository()))
 ){
     Box(modifier = modifier){
+        val groupedHeroes by viewModel.groupedHeroes.collectAsState()
         val scope = rememberCoroutineScope()
         val listState = rememberLazyListState()
         val showButton: Boolean by remember {
@@ -91,13 +103,19 @@ fun EpicSevenApp(
             state = listState,
             contentPadding = PaddingValues(bottom = 80.dp)
         ){
-            items(HeroesData.heroes, key = { it.id }){ hero ->
-                HeroesListItem(
-                    name = hero.name,
-                    photoUrl = hero.photoUrl,
-                    modifier = Modifier.fillMaxWidth()
-                )
+            groupedHeroes.forEach { (initial,heroes)->
+                stickyHeader {
+                    StickyCharacter(initial)
+                }
+                items(heroes, key = {it.id}){hero->
+                    HeroesListItem(
+                        name = hero.name,
+                        photoUrl = hero.photoUrl,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
+
         }
 
         AnimatedVisibility(
@@ -135,6 +153,27 @@ fun ScrollToTopButton(
     }
 }
 
+
+@Composable
+fun StickyCharacter(
+    char : Char,
+    modifier: Modifier = Modifier
+){
+    Surface(
+        color = MaterialTheme.colorScheme.primary,
+        modifier = modifier
+    ){
+        Text(
+            text = char.toString(),
+            fontWeight = FontWeight.Black,
+            color = Color.White,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+        )
+    }
+}
 
 @Preview(showBackground = true, device = Devices.PIXEL_4)
 @Composable
