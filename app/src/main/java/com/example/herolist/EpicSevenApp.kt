@@ -1,17 +1,18 @@
 package com.example.herolist
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,6 +21,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -38,7 +41,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
@@ -47,7 +49,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.herolist.data.HeroRepository
-import com.example.herolist.models.HeroesData
 import com.example.herolist.ui.theme.HeroListTheme
 import kotlinx.coroutines.launch
 
@@ -92,7 +93,10 @@ fun EpicSevenApp(
     viewModel: EpicSevenViewModel = viewModel(factory = ViewModelFactory(HeroRepository()))
 ){
     Box(modifier = modifier){
+        // ViewModel Data
         val groupedHeroes by viewModel.groupedHeroes.collectAsState()
+        val query by viewModel.query
+
         val scope = rememberCoroutineScope()
         val listState = rememberLazyListState()
         val showButton: Boolean by remember {
@@ -103,6 +107,13 @@ fun EpicSevenApp(
             state = listState,
             contentPadding = PaddingValues(bottom = 80.dp)
         ){
+            item{
+                SearchBar(
+                    query = query,
+                    onQueryChange = viewModel::search,
+                    modifier = Modifier.background(MaterialTheme.colorScheme.primary)
+                )
+            }
             groupedHeroes.forEach { (initial,heroes)->
                 stickyHeader {
                     StickyCharacter(initial)
@@ -137,6 +148,37 @@ fun EpicSevenApp(
     }
 }
 
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SearchBar(
+    query : String,
+    onQueryChange : (String) -> Unit,
+    modifier: Modifier = Modifier
+){
+    androidx.compose.material3.SearchBar(
+        query = query,
+        onQueryChange = onQueryChange,
+        onSearch = {},
+        active = false,
+        onActiveChange = {},
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Default.Search,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        },
+        placeholder = {
+            Text(stringResource(R.string.search_hero))
+        },
+        shape = MaterialTheme.shapes.large,
+        modifier = modifier
+            .padding(16.dp)
+            .fillMaxWidth()
+            .heightIn(min = 48.dp)
+    ) { }
+}
 @Composable
 fun ScrollToTopButton(
     onClick : () -> Unit,
